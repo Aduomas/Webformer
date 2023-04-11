@@ -618,13 +618,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_workers",
         type=int,
-        default=16,
+        default=8,
         help="The number of workers to use to write the files",
     )
     parser.add_argument(
         "--mu",
         type=int,
-        default=512,
+        default=64,
         help="The number of workers to use to write the files",
     )
     parser.add_argument("--output_dir", type=str, required=True)
