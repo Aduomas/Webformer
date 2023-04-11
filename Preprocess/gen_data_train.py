@@ -2,7 +2,7 @@ import os
 from argparse import ArgumentParser
 import sys
 
-sys.path.append('./')
+sys.path.append("./")
 from tqdm import tqdm
 import json
 from transformers import BertTokenizer
@@ -18,24 +18,23 @@ from collections import Counter
 import math
 import copy
 
-MaskedLmInstance = collections.namedtuple("MaskedLmInstance",
-                                          ["index", "label"])
+MaskedLmInstance = collections.namedtuple("MaskedLmInstance", ["index", "label"])
 lock = Lock()
-num_instances = Value('i', 0)
-num_docs = Value('i', 0)
-num_words = Value('i', 0)
+num_instances = Value("i", 0)
+num_docs = Value("i", 0)
+num_words = Value("i", 0)
 
-TEMP_DIR = './'
+TEMP_DIR = "./"
 
 from transformers import BertTokenizer, BertModel
 
-BertPath = '/home/yu_guo/huggingface_transformers/examples/pytorch/language-modeling/bert_base_uncased'
-tag_vocab_path = '/home/yu_guo/DataPreProcess/data/tag.vocab'
+BertPath = "bert-base-uncased"
+tag_vocab_path = "/home/yu_guo/DataPreProcess/data/tag.vocab"
 
 
 def load_vocab(path):
     vocab = []
-    with open(path, 'r')as f:
+    with open(path, "r") as f:
         for one_tag in f:
             vocab.append(one_tag.strip())
     return vocab
@@ -61,7 +60,11 @@ def get_text(html, i):
             depth = max(depth, tag_depth)
         depth += 1
         assert len(type_idx) == len(word)
-        return ["<" + tag_name + ">"] + word + ["<" + tag_name + ">"], [1] + type_idx + [2], depth
+        return (
+            ["<" + tag_name + ">"] + word + ["<" + tag_name + ">"],
+            [1] + type_idx + [2],
+            depth,
+        )
 
 
 def get_train_set(line, min_length=5, max_length=511):
@@ -73,7 +76,7 @@ def cut_text(line):
     text = []
     input_ids = []
     all_tokens, input_type_ids, _ = get_text(line, 0)
-    while (len(all_tokens) > 500):
+    while len(all_tokens) > 500:
         one_text = all_tokens[:500]
         input_id = input_type_ids[:500]
         all_tokens = all_tokens[500:]
@@ -102,7 +105,7 @@ def get_html_text(line, index, depth, min_length=10, max_length=512):
             res_text.append(text)
             res_type_idx.append(type_idx)
             if depth > 1:
-                children_ids = line[i]['children']
+                children_ids = line[i]["children"]
                 sample_num = int(0.2 * len(children_ids))
                 sample_ids = sample(children_ids, len(children_ids) - sample_num)
                 for item in sample_ids:
@@ -115,9 +118,10 @@ class DocumentDatabase:
         if reduce_memory:
             self.temp_dir = TemporaryDirectory(dir=TEMP_DIR)
             self.working_dir = Path(self.temp_dir.name)
-            self.document_shelf_filepath = self.working_dir / 'shelf.db'
-            self.document_shelf = shelve.open(str(self.document_shelf_filepath),
-                                              flag='n', protocol=-1)
+            self.document_shelf_filepath = self.working_dir / "shelf.db"
+            self.document_shelf = shelve.open(
+                str(self.document_shelf_filepath), flag="n", protocol=-1
+            )
             self.documents = None
         else:
             self.documents = []
@@ -164,7 +168,9 @@ class DocumentDatabase:
             self.temp_dir.cleanup()
 
 
-def create_masked_lm_predictions(tokens, masked_lm_prob, max_predictions_per_seq, whole_word_mask, vocab_list):
+def create_masked_lm_predictions(
+    tokens, masked_lm_prob, max_predictions_per_seq, whole_word_mask, vocab_list
+):
     """Creates the predictions for the masked LM objective. This is mostly copied from the Google BERT repo, but
     with several refactors to clean it up and remove a lot of unnecessary variables."""
     cand_indices = []
@@ -179,11 +185,13 @@ def create_masked_lm_predictions(tokens, masked_lm_prob, max_predictions_per_seq
         # Note that Whole Word Masking does *not* change the training code
         # at all -- we still predict each WordPiece independently, softmaxed
         # over the entire vocabulary.
-        if (whole_word_mask and len(cand_indices) >= 1 and token.startswith("##")):
+        if whole_word_mask and len(cand_indices) >= 1 and token.startswith("##"):
             cand_indices[-1].append(i)
         else:
             cand_indices.append([i])
-    num_to_mask = min(max_predictions_per_seq, max(1, int(round(len(cand_indices) * masked_lm_prob))))
+    num_to_mask = min(
+        max_predictions_per_seq, max(1, int(round(len(cand_indices) * masked_lm_prob)))
+    )
     shuffle(cand_indices)
     mask_indices = sorted(sample(cand_indices, num_to_mask))
     masked_lms = []
@@ -226,8 +234,20 @@ def create_masked_lm_predictions(tokens, masked_lm_prob, max_predictions_per_seq
     return tokens, mask_indices, masked_token_labels
 
 
-def construct_listwise_examples(examples, chunk_indexs, max_seq_len, mlm, bert_tokenizer, masked_lm_prob,
-                                 max_predictions_per_seq, bert_vocab_list, epoch_filename, word2df, mu, total_doc_cnt):
+def construct_listwise_examples(
+    examples,
+    chunk_indexs,
+    max_seq_len,
+    mlm,
+    bert_tokenizer,
+    masked_lm_prob,
+    max_predictions_per_seq,
+    bert_vocab_list,
+    epoch_filename,
+    word2df,
+    mu,
+    total_doc_cnt,
+):
     num_examples = len(examples)
     num_instance = 0
     for doc_idx in tqdm(chunk_indexs):
@@ -238,8 +258,17 @@ def construct_listwise_examples(examples, chunk_indexs, max_seq_len, mlm, bert_t
             tokens = ["[CLS]"] + text
             type_idx = [0] + type_idx
             if mlm:
-                tokens, masked_lm_positions, masked_lm_labels = create_masked_lm_predictions(
-                    tokens, masked_lm_prob, max_predictions_per_seq, True, bert_vocab_list)
+                (
+                    tokens,
+                    masked_lm_positions,
+                    masked_lm_labels,
+                ) = create_masked_lm_predictions(
+                    tokens,
+                    masked_lm_prob,
+                    max_predictions_per_seq,
+                    True,
+                    bert_vocab_list,
+                )
             else:
                 masked_lm_positions, masked_lm_labels = [], []
             tokens_idx = bert_tokenizer.convert_tokens_to_ids(tokens)
@@ -254,43 +283,74 @@ def construct_listwise_examples(examples, chunk_indexs, max_seq_len, mlm, bert_t
             }
             doc_instances = json.dumps(instance, ensure_ascii=False)
             lock.acquire()
-            with open(epoch_filename, 'a+') as epoch_file:
-                epoch_file.write(doc_instances + '\n')
+            with open(epoch_filename, "a+") as epoch_file:
+                epoch_file.write(doc_instances + "\n")
                 num_instances.value += 1
             lock.release()
 
 
 def error_callback(e):
-    print('error')
+    print("error")
     print(dir(e), "\n")
     traceback.print_exception(type(e), e, e.__traceback__)
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument('--train_corpus', type=str, required=True)
+    parser.add_argument("--train_corpus", type=str, required=True)
     parser.add_argument("--do_lower_case", action="store_true")
-    parser.add_argument("--bert_model", type=str, default='bert-base-uncased')
-    parser.add_argument("--reduce_memory", action="store_true",
-                        help="Reduce memory usage for large datasets by keeping data on disc rather than in memory")
-    parser.add_argument("--epochs_to_generate", type=int, default=1,
-                        help="Number of epochs of data to pregenerate")
+    parser.add_argument("--bert_model", type=str, default="bert-base-uncased")
+    parser.add_argument(
+        "--reduce_memory",
+        action="store_true",
+        help="Reduce memory usage for large datasets by keeping data on disc rather than in memory",
+    )
+    parser.add_argument(
+        "--epochs_to_generate",
+        type=int,
+        default=1,
+        help="Number of epochs of data to pregenerate",
+    )
     # parser.add_argument("--output_dir", type=str, required=True)
     parser.add_argument("--max_seq_len", type=int, default=256)
     parser.add_argument("--mlm", action="store_true")
-    parser.add_argument("--masked_lm_prob", type=float, default=0.15,
-                        help="Probability of masking each token for the LM task")
-    parser.add_argument("--max_predictions_per_seq", type=int, default=60,
-                        help="Maximum number of tokens to mask in each sequence")
-    parser.add_argument("--rop_num_per_doc", type=int, default=1,
-                        help="How many samples for each document")
-    parser.add_argument("--pairnum_per_doc", type=int, default=2,
-                        help="How many samples for each document")
-    parser.add_argument("--num_workers", type=int, default=16,
-                        help="The number of workers to use to write the files")
-    parser.add_argument("--mu", type=int, default=512,
-                        help="The number of workers to use to write the files")
-    parser.add_argument('--output_dir', type=str, required=True)
+    parser.add_argument(
+        "--masked_lm_prob",
+        type=float,
+        default=0.15,
+        help="Probability of masking each token for the LM task",
+    )
+    parser.add_argument(
+        "--max_predictions_per_seq",
+        type=int,
+        default=60,
+        help="Maximum number of tokens to mask in each sequence",
+    )
+    parser.add_argument(
+        "--rop_num_per_doc",
+        type=int,
+        default=1,
+        help="How many samples for each document",
+    )
+    parser.add_argument(
+        "--pairnum_per_doc",
+        type=int,
+        default=2,
+        help="How many samples for each document",
+    )
+    parser.add_argument(
+        "--num_workers",
+        type=int,
+        default=16,
+        help="The number of workers to use to write the files",
+    )
+    parser.add_argument(
+        "--mu",
+        type=int,
+        default=512,
+        help="The number of workers to use to write the files",
+    )
+    parser.add_argument("--output_dir", type=str, required=True)
 
     args = parser.parse_args()
 
@@ -298,7 +358,9 @@ if __name__ == "__main__":
     bert_model = BertModel.from_pretrained(BertPath)
 
     ADDITIONAL_SPECIAL_TOKENS = load_vocab(tag_vocab_path)
-    bert_tokenizer.add_special_tokens({"additional_special_tokens": ADDITIONAL_SPECIAL_TOKENS})
+    bert_tokenizer.add_special_tokens(
+        {"additional_special_tokens": ADDITIONAL_SPECIAL_TOKENS}
+    )
 
     # bert_tokenizer.add_special_tokens({"additional_special_tokens": ADDITIONAL_SPECIAL_TOKENS})
     bert_model.resize_token_embeddings(len(bert_tokenizer))
@@ -318,7 +380,7 @@ if __name__ == "__main__":
                 # example = json.loads(line)
                 # examples.append(example)
                 docs.add_document(example)
-        print('Reading file is done! Total doc num:{}'.format(len(docs)))
+        print("Reading file is done! Total doc num:{}".format(len(docs)))
 
         for epoch in range(args.epochs_to_generate):
             epoch_filename = f"{args.output_dir}/epoch_{epoch}.json"
@@ -331,19 +393,33 @@ if __name__ == "__main__":
 
             for i in range(num_processors):
                 chunk_size = int(len(cand_idxs) / num_processors)
-                chunk_indexs = cand_idxs[i * chunk_size:(i + 1) * chunk_size]
+                chunk_indexs = cand_idxs[i * chunk_size : (i + 1) * chunk_size]
                 # print("?")
-                r = processors.apply_async(construct_listwise_examples, (
-                docs, chunk_indexs, args.max_seq_len, args.mlm, bert_tokenizer, args.masked_lm_prob, \
-                args.max_predictions_per_seq, bert_vocab_list, epoch_filename, word2df, args.mu, len(docs)),
-                                           error_callback=error_callback)
+                r = processors.apply_async(
+                    construct_listwise_examples,
+                    (
+                        docs,
+                        chunk_indexs,
+                        args.max_seq_len,
+                        args.mlm,
+                        bert_tokenizer,
+                        args.masked_lm_prob,
+                        args.max_predictions_per_seq,
+                        bert_vocab_list,
+                        epoch_filename,
+                        word2df,
+                        args.mu,
+                        len(docs),
+                    ),
+                    error_callback=error_callback,
+                )
             processors.close()
             processors.join()
 
             metrics_file = f"{args.output_dir}/epoch_{epoch}_metrics.json"
-            with open(metrics_file, 'w') as metrics_file:
+            with open(metrics_file, "w") as metrics_file:
                 metrics = {
                     "num_training_examples": num_instances.value,
-                    "max_seq_len": args.max_seq_len
+                    "max_seq_len": args.max_seq_len,
                 }
                 metrics_file.write(json.dumps(metrics))
