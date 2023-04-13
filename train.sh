@@ -12,5 +12,4 @@ CUDA_VISIBLE_DEVICES=1 python ./run_mlm_pc.py \
 	--dataset_script_dir ./data_scripts \
 	--dataset_cache_dir ./cache \
 	--limit 50000000 \
-	--overwrite_output_dir \
-	--tokenizer_name ./bert_base_uncased
+	--overwrite_output_dir
