@@ -4,4 +4,5 @@ data/endata/*
 !data/endata/.gitkeep
 data/endata_new_clean/*
 !data/endata_new_clean/.gitkeep
-data/training_ddata/*
+data/training_data/*.json
+data/*.json

@@ -29,7 +29,7 @@ TEMP_DIR = "./"
 from transformers import BertTokenizer, BertModel
 
 BertPath = "bert-base-uncased"
-tag_vocab_path = "/home/yu_guo/DataPreProcess/data/tag.vocab"
+tag_vocab_path = "./data/tag.vocab"
 
 
 def load_vocab(path):
