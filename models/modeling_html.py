@@ -31,11 +31,13 @@ class Webformer(FraBert):
         all_embeddings = self.bert.embeddings.word_embeddings(node_input_ids)
         mask_embeddings = self.bert.embeddings.word_embeddings(node_input_ids)
         neg_embeddings = self.bert.embeddings.word_embeddings(node_input_ids)
-        if not output:  # Add this check to ensure output is not empty
-            print("output is empty")
-            return all_embeddings, neg_embeddings, mask_embeddings
+        # if not output:  # Add this check to ensure output is not empty
+        #     print("output is empty")
+        #     return all_embeddings, neg_embeddings, mask_embeddings
+        print(f"{output=}")
         output.reverse()
         output = output[1:]
+        print(f"{output=}")
         res = torch.cat(output, dim=0)
         all_embeddings[waiting_mask.type(torch.bool)] = res
         neg_embeddings[waiting_mask.type(torch.bool)] = res
