@@ -357,10 +357,10 @@ if __name__ == "__main__":
     bert_tokenizer = BertTokenizer.from_pretrained(BertPath)
     bert_model = BertModel.from_pretrained(BertPath)
 
-    ADDITIONAL_SPECIAL_TOKENS = load_vocab(tag_vocab_path)
-    bert_tokenizer.add_special_tokens(
-        {"additional_special_tokens": ADDITIONAL_SPECIAL_TOKENS}
-    )
+    # ADDITIONAL_SPECIAL_TOKENS = load_vocab(tag_vocab_path)
+    # bert_tokenizer.add_special_tokens(
+    #     {"additional_special_tokens": ADDITIONAL_SPECIAL_TOKENS}
+    # )
 
     # bert_tokenizer.add_special_tokens({"additional_special_tokens": ADDITIONAL_SPECIAL_TOKENS})
     bert_model.resize_token_embeddings(len(bert_tokenizer))
