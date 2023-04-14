@@ -1,8 +1,8 @@
-CUDA_VISIBLE_DEVICES=1 python ./run_mlm_pc.py \
+CUDA_VISIBLE_DEVICES=0 python ./run_mlm_pc.py \
 	--model_name_or_path bert-base-uncased \
 	--learning_rate 5e-5 \
 	--node_config_name ./bert_base_1layer \
-	--train_file ./epoch_0.json \
+	--train_file ./data/training_data/epoch_0.json \
 	--do_train \
 	--per_device_train_batch_size 2 \
 	--num_train_epochs 1 \

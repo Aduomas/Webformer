@@ -28,7 +28,7 @@ from transformers import (
     set_seed,
 )
 from transformers.trainer_utils import is_main_process
-from mydatasets import  HBERTPointCollator, HBERTPretrainedPointWiseDataset
+from mydatasets import HBERTPointCollator, HBERTPretrainedPointWiseDataset
 from models.FraBert import FraBert
 
 logger = logging.getLogger(__name__)
@@ -46,39 +46,54 @@ class ModelArguments:
         default=None,
         metadata={
             "help": "The model checkpoint for weights initialization."
-                    "Don't set if you want to train a model from scratch."
+            "Don't set if you want to train a model from scratch."
         },
     )
     model_type: Optional[str] = field(
         default=None,
-        metadata={"help": "If training from scratch, pass a model type from the list: " + ", ".join(MODEL_TYPES)},
+        metadata={
+            "help": "If training from scratch, pass a model type from the list: "
+            + ", ".join(MODEL_TYPES)
+        },
     )
     config_name: Optional[str] = field(
-        default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
+        default=None,
+        metadata={
+            "help": "Pretrained config name or path if not the same as model_name"
+        },
     )
     node_config_name: Optional[str] = field(
         default=None, metadata={"help": "node config path."}
     )
     tokenizer_name: Optional[str] = field(
-        default=None, metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
+        default=None,
+        metadata={
+            "help": "Pretrained tokenizer name or path if not the same as model_name"
+        },
     )
     cache_dir: Optional[str] = field(
         default=None,
-        metadata={"help": "Where do you want to store the pretrained models downloaded from huggingface.co"},
+        metadata={
+            "help": "Where do you want to store the pretrained models downloaded from huggingface.co"
+        },
     )
     use_fast_tokenizer: bool = field(
         default=True,
-        metadata={"help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."},
+        metadata={
+            "help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."
+        },
     )
     model_revision: str = field(
         default="main",
-        metadata={"help": "The specific model version to use (can be a branch name, tag name or commit id)."},
+        metadata={
+            "help": "The specific model version to use (can be a branch name, tag name or commit id)."
+        },
     )
     use_auth_token: bool = field(
         default=False,
         metadata={
             "help": "Will use the token generated when running `transformers-cli login` (necessary to use this script "
-                    "with private models)."
+            "with private models)."
         },
     )
 
@@ -88,19 +103,29 @@ class DataTrainingArguments:
     """
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
+
     dataset_name: Optional[str] = field(
-        default=None, metadata={"help": "The name of the dataset to use (via the datasets library)."}
+        default=None,
+        metadata={"help": "The name of the dataset to use (via the datasets library)."},
     )
     dataset_config_name: Optional[str] = field(
-        default=None, metadata={"help": "The configuration name of the dataset to use (via the datasets library)."}
+        default=None,
+        metadata={
+            "help": "The configuration name of the dataset to use (via the datasets library)."
+        },
     )
-    train_file: Optional[str] = field(default=None, metadata={"help": "The input training data file (a text file)."})
+    train_file: Optional[str] = field(
+        default=None, metadata={"help": "The input training data file (a text file)."}
+    )
     validation_file: Optional[str] = field(
         default=None,
-        metadata={"help": "An optional input evaluation data file to evaluate the perplexity on (a text file)."},
+        metadata={
+            "help": "An optional input evaluation data file to evaluate the perplexity on (a text file)."
+        },
     )
     overwrite_cache: bool = field(
-        default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
+        default=False,
+        metadata={"help": "Overwrite the cached training and evaluation sets"},
     )
     validation_split_percentage: Optional[int] = field(
         default=5,
@@ -112,7 +137,7 @@ class DataTrainingArguments:
         default=None,
         metadata={
             "help": "The maximum total input sequence length after tokenization. Sequences longer "
-                    "than this will be truncated."
+            "than this will be truncated."
         },
     )
     preprocessing_num_workers: Optional[int] = field(
@@ -120,31 +145,40 @@ class DataTrainingArguments:
         metadata={"help": "The number of processes to use for the preprocessing."},
     )
     mlm_probability: float = field(
-        default=0.15, metadata={"help": "Ratio of tokens to mask for masked language modeling loss"}
+        default=0.15,
+        metadata={"help": "Ratio of tokens to mask for masked language modeling loss"},
     )
     line_by_line: bool = field(
         default=False,
-        metadata={"help": "Whether distinct lines of text in the dataset are to be handled as distinct sequences."},
+        metadata={
+            "help": "Whether distinct lines of text in the dataset are to be handled as distinct sequences."
+        },
     )
     pad_to_max_length: bool = field(
         default=False,
         metadata={
             "help": "Whether to pad all samples to `max_seq_length`. "
-                    "If False, will pad the samples dynamically when batching to the maximum length in the batch."
+            "If False, will pad the samples dynamically when batching to the maximum length in the batch."
         },
     )
     dataset_cache_dir: str = field(
         default=False,
-        metadata={"help": "Whether distinct lines of text in the dataset are to be handled as distinct sequences."},
+        metadata={
+            "help": "Whether distinct lines of text in the dataset are to be handled as distinct sequences."
+        },
     )
     dataset_script_dir: str = field(
         default=False,
-        metadata={"help": "Whether distinct lines of text in the dataset are to be handled as distinct sequences."},
+        metadata={
+            "help": "Whether distinct lines of text in the dataset are to be handled as distinct sequences."
+        },
     )
 
     limit: Optional[int] = field(
         default=50000000,
-        metadata={"help": "Whether distinct lines of text in the dataset are to be handled as distinct sequences."},
+        metadata={
+            "help": "Whether distinct lines of text in the dataset are to be handled as distinct sequences."
+        },
     )
 
     def __post_init__(self):
@@ -161,13 +195,15 @@ class DataTrainingArguments:
 
 
 def main():
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
+    parser = HfArgumentParser(
+        (ModelArguments, DataTrainingArguments, TrainingArguments)
+    )
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
     if (
-            os.path.exists(training_args.output_dir)
-            and os.listdir(training_args.output_dir)
-            and training_args.do_train
-            and not training_args.overwrite_output_dir
+        os.path.exists(training_args.output_dir)
+        and os.listdir(training_args.output_dir)
+        and training_args.do_train
+        and not training_args.overwrite_output_dir
     ):
         raise ValueError(
             f"Output directory ({training_args.output_dir}) already exists and is not empty."
@@ -178,7 +214,9 @@ def main():
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
-        level=logging.INFO if is_main_process(training_args.local_rank) else logging.WARN,
+        level=logging.INFO
+        if is_main_process(training_args.local_rank)
+        else logging.WARN,
     )
 
     # Log on each process the small summary:
@@ -209,17 +247,25 @@ def main():
         "use_auth_token": True if model_args.use_auth_token else None,
     }
     if model_args.config_name:
-        text_config = AutoConfig.from_pretrained(model_args.config_name, **config_kwargs)
+        text_config = AutoConfig.from_pretrained(
+            model_args.config_name, **config_kwargs
+        )
     elif model_args.model_name_or_path:
-        text_config = AutoConfig.from_pretrained(model_args.model_name_or_path, **config_kwargs)
+        text_config = AutoConfig.from_pretrained(
+            model_args.model_name_or_path, **config_kwargs
+        )
     else:
         text_config = CONFIG_MAPPING[model_args.model_type]()
         logger.warning("You are instantiating a new config instance from scratch.")
 
     if model_args.node_config_name:
-        node_config = AutoConfig.from_pretrained(model_args.node_config_name, **config_kwargs)
+        node_config = AutoConfig.from_pretrained(
+            model_args.node_config_name, **config_kwargs
+        )
     elif model_args.model_name_or_path:
-        node_config = AutoConfig.from_pretrained(model_args.model_name_or_path, **config_kwargs)
+        node_config = AutoConfig.from_pretrained(
+            model_args.model_name_or_path, **config_kwargs
+        )
     else:
         node_config = CONFIG_MAPPING[model_args.model_type]()
 
@@ -230,9 +276,13 @@ def main():
         "use_auth_token": True if model_args.use_auth_token else None,
     }
     if model_args.tokenizer_name:
-        tokenizer = AutoTokenizer.from_pretrained(model_args.tokenizer_name, **tokenizer_kwargs)
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_args.tokenizer_name, **tokenizer_kwargs
+        )
     elif model_args.model_name_or_path:
-        tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path, **tokenizer_kwargs)
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_args.model_name_or_path, **tokenizer_kwargs
+        )
     else:
         raise ValueError(
             "You are instantiating a new tokenizer from scratch. This is not supported by this script."
@@ -243,7 +293,7 @@ def main():
 
         model = Webformer.from_pretrained(
             model_args.model_name_or_path,
-            #num_type = 3,
+            # num_type = 3,
             from_tf=bool(".ckpt" in model_args.model_name_or_path),
             node_config=node_config,
             layer_num=5,
@@ -253,11 +303,11 @@ def main():
         )
     else:
         logger.info("Training new model from scratch")
-        #model = BertForMaskedLM(config=config)
-        model = Webformer(node_config=node_config,text_config=text_config,layer_num=5)
-      #  model = FraBert(config=config,num_type=3)
-    device = torch.device('cuda')
-    #device = torch.device('cpu')
+        # model = BertForMaskedLM(config=config)
+        model = Webformer(node_config=node_config, text_config=text_config, layer_num=5)
+    #  model = FraBert(config=config,num_type=3)
+    device = torch.device("cuda")
+    # device = torch.device('cpu')
 
     model.to(device)
     model.resize_token_embeddings(len(tokenizer))
@@ -274,17 +324,21 @@ def main():
     if training_args.do_train:
         print("start getting training dataset........")
         train_dataset = HBERTPretrainedPointWiseDataset(
-            data_args, tokenizer, data_args.dataset_cache_dir, data_args.dataset_script_dir, max_seq_len=256
+            data_args,
+            tokenizer,
+            data_args.dataset_cache_dir,
+            data_args.dataset_script_dir,
+            max_seq_len=256,
         )
     else:
         train_dataset = None
 
-    print('getting dataset succcess................')
+    print("getting dataset succcess................")
 
     # data_collator = PairCollator(tokenizer=tokenizer)
     # data_collator = PointCollator(tokenizer=tokenizer)
     data_collator = HBERTPointCollator(tokenizer=tokenizer)
-    print('-----------------')
+    print("-----------------")
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -295,7 +349,10 @@ def main():
     if training_args.do_train:
         model_path = (
             model_args.model_name_or_path
-            if (model_args.model_name_or_path is not None and os.path.isdir(model_args.model_name_or_path))
+            if (
+                model_args.model_name_or_path is not None
+                and os.path.isdir(model_args.model_name_or_path)
+            )
             else None
         )
         train_result = trainer.train(model_path=model_path)
@@ -310,9 +367,11 @@ def main():
                     writer.write(f"{key} = {value}\n")
 
             # Need to save the state, since Trainer.save_model saves only the tokenizer with the model
-            trainer.state.save_to_json(os.path.join(training_args.output_dir, "trainer_state.json"))
+            trainer.state.save_to_json(
+                os.path.join(training_args.output_dir, "trainer_state.json")
+            )
 
-        model_save_dir = os.environ['DLS_TRAIN_URL']
+        model_save_dir = os.environ["DLS_TRAIN_URL"]
 
 
 #        mox.file.copy_parallel("/home/work/user-job-dir/FraBert/FraBert_scrach","s3://obs-app-2020042019121301221/SEaaKM/g50020960/code/FraBert/FraBert_scrach")
