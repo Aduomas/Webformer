@@ -36,7 +36,7 @@ class Webformer(FraBert):
         #     return all_embeddings, neg_embeddings, mask_embeddings
         print(f"{output=}")
         output.reverse()
-        output = output[1:]
+        # output = output[1:]
         print(f"{output=}")
         res = torch.cat(output, dim=0)
         all_embeddings[waiting_mask.type(torch.bool)] = res
